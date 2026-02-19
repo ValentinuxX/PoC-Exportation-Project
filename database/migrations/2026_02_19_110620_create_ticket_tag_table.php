@@ -14,7 +14,7 @@ return new class extends Migration
         Schema::create('ticket_tag', function (Blueprint $table) {
             $table->id();
             // cascadeOnDelete hace que si se borra un ticket, se borre su relación con la etiqueta
-            $table-foreingId('ticket_id')->constrained()->cascadeOnDelete();
+            $table->foreignId('ticket_id')->constrained()->cascadeOnDelete();
             $table->foreignId('tag_id')->constrained()->cascadeOnDelete();
             $table->timestamps();
         });

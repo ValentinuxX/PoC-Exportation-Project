@@ -14,18 +14,18 @@ return new class extends Migration
         Schema::create('tickets', function (Blueprint $table) {
             $table->id();
             // Claves foráneas
-            $table->foreingId('user_id')->constrained();
-            $table->foreignID('category_id')->constrained();
+            $table->foreignId('user_id')->constrained();
+            $table->foreignId('category_id')->constrained();
 
             // Datos
             $table->string('title');
-            $table->text('descr(iption');
+            $table->text('description');
             $table->string('status')->default('Pendiente');
-            $table->string('citizen_name')->nulable();
-            $table->ipaddress('ip_address')->nulable();
+            $table->string('citizen_name')->nullable();
+            $table->ipAddress('ip_address')->nullable();
 
             //Fechas y deletes
-            $table->timestamp('completed_at')->nulable();
+            $table->timestamp('completed_at')->nullable();
             $table->softDeletes(); // Crea el campo deleted_at automáticamente
             $table->timestamps();
         });
