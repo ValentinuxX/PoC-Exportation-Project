@@ -80,4 +80,70 @@ class TicketApiTest extends TestCase
         $response->assertStatus(422)
                  ->assertJsonValidationErrors(['category_id']);
     }
+
+    public function test_puede_obtener_un_solo_ticket()
+    {
+        $user = User::create(['name' => 'User', 'email' => 'u1@test.com', 'password' => '123']);
+        $category = Category::create(['name' => 'Fallo', 'priority' => 'Alta']);
+        
+        $ticket = Ticket::create([
+            'title' => 'Ticket Único',
+            'description' => 'Detalles',
+            'category_id' => $category->id,
+            'user_id' => $user->id,
+            'status' => 'Abierto'
+        ]);
+
+        $response = $this->getJson('/api/tickets/' . $ticket->id);
+
+        $response->assertStatus(200)
+                 ->assertJsonFragment(['title' => 'Ticket Único']);
+    }
+
+    public function test_puede_actualizar_un_ticket()
+    {
+        $user = User::create(['name' => 'User', 'email' => 'u2@test.com', 'password' => '123']);
+        $category = Category::create(['name' => 'Fallo', 'priority' => 'Alta']);
+        
+        $ticket = Ticket::create([
+            'title' => 'Ticket Viejo',
+            'description' => 'Vieja',
+            'category_id' => $category->id,
+            'user_id' => $user->id,
+            'status' => 'Pendiente'
+        ]);
+
+        $response = $this->putJson('/api/tickets/' . $ticket->id, [
+            'title' => 'Ticket Actualizado',
+            'status' => 'Resuelto'
+        ]);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseHas('tickets', [
+            'id' => $ticket->id,
+            'title' => 'Ticket Actualizado',
+            'status' => 'Resuelto'
+        ]);
+    }
+
+    public function test_puede_borrar_un_ticket()
+    {
+        $user = User::create(['name' => 'User', 'email' => 'u3@test.com', 'password' => '123']);
+        $category = Category::create(['name' => 'Fallo', 'priority' => 'Alta']);
+        
+        $ticket = Ticket::create([
+            'title' => 'Ticket a borrar',
+            'description' => 'Adios',
+            'category_id' => $category->id,
+            'user_id' => $user->id,
+            'status' => 'Pendiente'
+        ]);
+
+        $response = $this->deleteJson('/api/tickets/' . $ticket->id);
+
+        $response->assertStatus(200);
+        $this->assertDatabaseMissing('tickets', [
+            'id' => $ticket->id
+        ]);
+    }
 }

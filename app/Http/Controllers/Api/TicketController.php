@@ -3,64 +3,77 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Ticket;
 use Illuminate\Http\Request;
+use App\Services\TicketService; // <-- Importo el servicio
 
 class TicketController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
+    protected $ticketService;
+
+    // Inyecto el servicio en el constructor para usarlo en toda la clase
+    public function __construct(TicketService $ticketService)
+    {
+        $this->ticketService = $ticketService;
+    }
+
     public function index()
     {
-        // Traigo todos los tickets incuyendo los datos del usuario y la categoría en la misma consulta
-        $tickets = Ticket::with(['user', 'category'])->get();
+        // El controlador ya no se encarga de buscar los tickets, solo se los pide al servicio
+        $tickets = $this->ticketService->getAllTickets();
 
         return response()->json($tickets);
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
     public function store(Request $request)
     {
-        // Valido los datos de entrada
+        // 1. El controlador si asume la responsabilidad de Validar (Seguridad)
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'required|string',
-            'category_id' => 'required|exists:categories,id', // Debe existir
+            'category_id' => 'required|exists:categories,id',
             'user_id' => 'required|exists:users,id',
             'status' => 'nullable|string'
         ]);
 
-        // Crear el ticket (usando el $fillable del modelo)
-        $ticket = Ticket::create($validated);
+        // 2. Delega la responsabilidad de Crear al servicio
+        $ticket = $this->ticketService->createTicket($validated);
 
-        // Devuelvo el ticket recién creado con un código de estado HTTP 201
+        // 3. Asume la responsabilidad de Responder
         return response()->json($ticket, 201);
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
+    // Dejo el resto de funciones em TODO
+    public function show(string $id) {
+
+        // Delego la búsqueda al servicio
+        $ticket = $this->ticketService->getTicketById($id);
+        
+        return response()->json($ticket, 200);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, string $id)
-    {
-        //
+    public function update(Request $request, string $id) {
+
+        // 1. Valido los datos (uso 'sometimes' para que solo valide lo que el usuario decida enviar)
+        $validated = $request->validate([
+            'title' => 'sometimes|required|string|max:255',
+            'description' => 'sometimes|required|string',
+            'category_id' => 'sometimes|required|exists:categories,id',
+            'user_id' => 'sometimes|required|exists:users,id',
+            'status' => 'sometimes|required|string'
+        ]);
+
+        // 2. Delego la actualización al servicio
+        $ticket = $this->ticketService->updateTicket($id, $validated);
+
+        return response()->json($ticket, 200);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(string $id)
-    {
-        //
+
+    public function destroy(string $id) {
+
+        // Delego el borrado al servicio
+        $this->ticketService->deleteTicket($id);
+
+        return response()->json(['message' => 'Ticket eliminado correctamente'], 200);
     }
 }
