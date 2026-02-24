@@ -50,5 +50,55 @@ class TicketService
         $ticket->delete();
         return true;
     }
+
+    /**
+     * Obtener los tickets filtrados por múltiples criterios.
+     */
+    public function getTicketsForExport(array $filters = [])
+    {
+        // Inicio la consulta base
+        $query = Ticket::with(['user', 'category']);
+
+        // 1. Filtro por Estado (Exacto)
+        if (!empty($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+       // 2. Filtro por Prioridad (Buscando dentro de la tabla categorías)
+        if (!empty($filters['priority'])) {
+            $query->whereHas('category', function ($q) use ($filters) {
+                $q->where('priority', $filters['priority']);
+            });
+        }
+
+        // 3. Filtro por Categoría (ID exacto)
+        if (!empty($filters['category_id'])) {
+            $query->where('category_id', $filters['category_id']);
+        }
+
+        // 4. Filtro por Usuario (ID exacto)
+        if (!empty($filters['user_id'])) {
+            $query->where('user_id', $filters['user_id']);
+        }
+
+        // 5. Filtro por Rango de Fechas (Creación)
+        if (!empty($filters['date_from'])) {
+            // "Desde" las 00:00:00 de ese día
+            $query->whereDate('created_at', '>=', $filters['date_from']);
+        }
+
+        if (!empty($filters['date_to'])) {
+            // "Hasta" las 23:59:59 de ese día
+            $query->whereDate('created_at', '<=', $filters['date_to']);
+        }
+
+        // 6. Búsqueda por texto (Título) - "LIKE" es para búsquedas parciales
+        if (!empty($filters['search'])) {
+            $query->where('title', 'like', '%' . $filters['search'] . '%');
+        }
+
+        // Ordenamos por los más nuevos primero
+        return $query->orderBy('created_at', 'desc')->get();
+    }
 }
 

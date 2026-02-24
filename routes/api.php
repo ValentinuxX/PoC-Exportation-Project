@@ -8,6 +8,9 @@ Route::get('/user', function (Request $request) {
     return $request->user();
 })->middleware('auth:sanctum');
 
+// La ruta de exportación
+Route::get('/tickets/export', [TicketController::class, 'export']);
+
 // Creo la ruta para la API de tickets (esta ruta crea GET, POST, PUT y DELETE automáticamente)
 Route::apiResource('tickets', TicketController::class);
 
