@@ -8,7 +8,7 @@ class TicketService
 {
     /**
      * MÉTODO PRiVADO: Construye la consulta base con los filtros.
-     * Así no repetimos este código gigante en la paginación y en la exportación.
+     * Así no repito este código gigante en la paginación y en la exportación.
      */
     private function buildFilterQuery(array $filters = [])
     {

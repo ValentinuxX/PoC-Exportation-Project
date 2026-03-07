@@ -16,10 +16,10 @@ class TicketController extends Controller
         $this->ticketService = $ticketService;
     }
 
-    public function index()
+    public function index(Request $request)
     {
         // El controlador ya no se encarga de buscar los tickets, solo se los pide al servicio
-        $tickets = $this->ticketService->getAllTickets();
+        $tickets = $this->ticketService->getAllTickets($request->all());
 
         return response()->json($tickets);
     }
