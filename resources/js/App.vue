@@ -76,16 +76,16 @@
 
 <script setup>
 import { ref, onMounted } from 'vue';
-import TicketFilters from './components/TicketFilters.vue'; // Importamos el componente
+import TicketFilters from './components/TicketFilters.vue'; // Importo el componente
 
 const tickets = ref({ data: [], current_page: 1, last_page: 1, total: 0 });
 const loading = ref(true);
-const activeFilters = ref({}); // Aquí guardaremos los filtros que nos envíe el componente
+const activeFilters = ref({}); // Guardo los filtros que nos envíe el componente
 
 // Esta función se dispara cuando el usuario pulsa "Aplicar Filtros" en el componente hijo
 const updateFiltersAndFetch = (newFilters) => {
   activeFilters.value = newFilters;
-  fetchTickets(1); // Siempre que filtramos, volvemos a la página 1
+  fetchTickets(1); // Siempre que filtro, volvemos a la página 1
 };
 
 const fetchTickets = async (page = 1) => {
@@ -93,7 +93,7 @@ const fetchTickets = async (page = 1) => {
   try {
     const params = new URLSearchParams({ page: page });
 
-    // Recorremos los filtros activos y los añadimos a la URL si tienen algún valor
+    // Recorro los filtros activos y los añado a la URL si tienen algún valor
     Object.keys(activeFilters.value).forEach(key => {
       if (activeFilters.value[key] !== '') {
         params.append(key, activeFilters.value[key]);
