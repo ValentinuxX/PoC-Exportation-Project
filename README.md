@@ -50,3 +50,4 @@ El frontend de esta Prueba de Concepto (PoC) se ha desarrollado como una Single 
 
 ---
 
+## Documentación: /resources/docs
