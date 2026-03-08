@@ -1,59 +1,52 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# PoC Exportation Project
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+```text
+  _____        _____   _______ _      _        _       
+ |  __ \      / ____| |__   __(_)    | |      | |      
+ | |__) |___ | |         | |   _  ___| | _____| |_ ___ 
+ |  ___/ _ \| |         | |  | |/ __| |/ / _ \ __/ __|
+ | |  | (_) | |____     | |  | | (__|   <  __/ |_\__ \
+ |_|   \___/ \_____|    |_|  |_|\___|_|\_\___|\__|___/
 
-## About Laravel
+ 
+# Resumen de Arquitectura Backend (Laravel API)
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+El backend de esta Prueba de Concepto (PoC) se ha construido bajo una arquitectura robusta, escalable y totalmente desacoplada, exponiendo una API RESTful estricta para ser consumida por el frontend (Vue 3).
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Patrones de Diseño y Estructura
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+* **Patrón de Servicios (Service Pattern):** La lógica de negocio y las consultas complejas a la base de datos se han extraído a clases dedicadas (ej. `TicketService`). Los controladores mantienen una "Responsabilidad Única" (SOLID), limitándose a recibir la petición HTTP, validar datos, delegar la tarea al servicio y devolver una respuesta JSON o un flujo de datos.
+* **Enrutamiento API:** Las rutas están claramente separadas en el archivo `routes/api.php`, priorizando correctamente rutas estáticas (como `/export`) sobre rutas dinámicas (`apiResource`) para evitar conflictos de resolución (Errores 404).
 
-## Learning Laravel
+## Rendimiento y Optimización de Datos
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+* **Data Streaming Seguro:** Para la exportación masiva de datos (50.000+ registros), se descartó la carga en memoria (`->get()`) para evitar colapsos de RAM (Out of Memory). En su lugar, se implementó una salida HTTP en streaming directa al navegador mediante `response()->stream()`.
+* **Resolución del Problema N+1:** Para evitar que el streaming ahogara la base de datos con peticiones individuales, se combinó la lectura por bloques (`chunk(1000)`) con la precarga de relaciones (*Eager Loading* usando `with()`). Esto redujo las consultas, logrando tiempos de exportación de ~7 segundos.
+* **Compatibilidad de Codificación:** Se inyectó el BOM (Byte Order Mark) UTF-8 directamente en el flujo del archivo CSV para garantizar una representación perfecta de caracteres especiales (tildes, eñes) nativa en Microsoft Excel.
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+---
 
-## Laravel Sponsors
+# Resumen de Arquitectura Frontend (Vue 3 SPA)
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+El frontend de esta Prueba de Concepto (PoC) se ha desarrollado como una Single Page Application (SPA) moderna, enfocada en la reactividad, el rendimiento y una experiencia de usuario sin interrupciones ni recargas de página.
 
-### Premium Partners
+## Tecnologías y Ecosistema
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+* **Vue 3 (Composition API):** Se ha utilizado la sintaxis moderna de Vue (`<script setup>`) para lograr un código más conciso, modular y fácil de mantener.
+* **Vite:** Actúa como motor de compilación y servidor de desarrollo, proporcionando Hot Module Replacement (HMR) para reflejar los cambios en el navegador de forma instantánea. Se resolvieron exitosamente los retos de infraestructura y puertos (CORS) en entornos de nube (Codespaces).
+* **Tailwind CSS:** Implementado como framework de estilos basado en utilidades, permitiendo una maquetación ágil, consistente y con un peso de archivo final mínimo gracias a la purga de clases no utilizadas.
 
-## Contributing
+## Estructura de Componentes y Estado Reactivo
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+* **Desacoplamiento Visual:** La interfaz se ha dividido en componentes modulares. El componente principal gestiona el estado global de la vista (la tabla de datos y la paginación), mientras que subcomponentes dedicados, como `TicketFilters.vue`, encapsulan la lógica de la interfaz de usuario específica.
+* **Comunicación entre Componentes:** Se ha implementado un flujo de datos unidireccional estructurado. Los componentes hijos recolectan la interacción del usuario y utilizan eventos (`emit`) para notificar al componente padre, quien centraliza la actualización del estado y la comunicación con el backend.
+* **Gestión de Estado:** Uso de referencias reactivas (`ref`) para controlar los datos de la tabla, los criterios de filtrado y los estados de interfaz (como los indicadores de "Cargando datos...").
 
-## Code of Conduct
+## Integración con la API y Experiencia de Usuario
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+* **Peticiones Dinámicas:** La aplicación construye dinámicamente las cadenas de consulta (Query Strings) utilizando `URLSearchParams`, iterando sobre los filtros activos (búsqueda por texto, estado, fechas) y omitiendo valores vacíos para mantener URLs limpias hacia la API de Laravel.
+* **Paginación Reactiva:** La navegación entre miles de registros se realiza de forma asíncrona, actualizando únicamente el bloque de datos de la tabla y manteniendo la coherencia con los filtros aplicados en todo momento.
+* **Exportación Integrada (CSV):** La funcionalidad de descarga masiva se ha conectado de forma transparente. En lugar de procesar grandes volúmenes de datos en la memoria del navegador, el frontend delega el trabajo pesado reconstruyendo la URL con los filtros activos y redirigiendo silenciosamente (`window.location.href`) para interceptar el archivo en streaming generado por el backend.
 
-## Security Vulnerabilities
+---
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
-
-## License
-
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
