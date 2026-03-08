@@ -114,20 +114,20 @@ class TicketController extends Controller
                 'Fecha de Creación'
             ]);
 
-            // Iteramos sobre la colección y escribimos una línea por cada ticket
-            foreach ($tickets as $ticket) {
-                fputcsv($file, [
-                    $ticket->id,
-                    $ticket->title,
-                    $ticket->status ?? 'Sin estado',
-                    // Uso el operador nullsafe (??) por si acaso algún ticket fue borrado de su usuario/categoría
-                    $ticket->user->name ?? 'Sin usuario',
-                    $ticket->category->name ?? 'Sin categoría',
-                    $ticket->category->priority ?? 'N/A', // Saco la prioridad desde la relación con la categoría
-                    $ticket->created_at->format('Y-m-d H:i:s')
-                ]);
-            }
-
+            // Uso chunk() en lugar de cursor()
+            $tickets->chunk(1000, function ($chunk) use ($file) {
+                foreach ($chunk as $ticket) {
+                    fputcsv($file, [
+                        $ticket->id,
+                        $ticket->title,
+                        $ticket->status ?? 'Sin estado',
+                        $ticket->user->name ?? 'Sin usuario',
+                        $ticket->category->name ?? 'Sin categoría',
+                        $ticket->category->priority ?? 'N/A',
+                        $ticket->created_at->format('Y-m-d H:i:s')
+                    ]);
+                }
+            });
             fclose($file); 
         };
 

@@ -76,4 +76,5 @@ const clearFilters = () => {
   filters.value = { ...defaultFilters };
   emit('filter-applied', { ...filters.value });
 };
+
 </script>

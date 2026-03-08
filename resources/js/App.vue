@@ -10,7 +10,10 @@
             (Total: {{ tickets.total || 0 }} registros)
           </p>
         </div>
-        <button class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-5 rounded-lg shadow transition flex items-center gap-2">
+        <button 
+        @click="exportCSV"
+        class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-5 rounded-lg shadow transition flex items-center gap-2"
+        >
           <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
           </svg>
@@ -113,4 +116,21 @@ const fetchTickets = async (page = 1) => {
 onMounted(() => {
   fetchTickets();
 });
+
+const exportCSV = () => {
+  const params = new URLSearchParams();
+
+  // Recorro los filtros activos (estado, fechas, búsqueda) y los añado a la URL
+  Object.keys(activeFilters.value).forEach(key => {
+    if (activeFilters.value[key] !== '') {
+      params.append(key, activeFilters.value[key]);
+    }
+  });
+
+  // Construyo la URL final hacia el método del controlador
+  const exportUrl = `/api/tickets/export?${params.toString()}`;
+
+  // Forzamos al navegador a "viajar" a esa URL para descargar el archivo.
+  window.location.href = exportUrl;
+};
 </script>
